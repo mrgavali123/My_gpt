@@ -10,13 +10,28 @@ model = genai.GenerativeModel('gemini-pro')
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
-# Set default theme to dark mode
+# Set default theme to dark mode with contrasting text colors
 st.markdown(
     """
     <style>
     body {
         background-color: #303030;
+        color: #f1f1f1;
+    }
+    .message-user, .message-ai {
+        padding: 10px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+    .message-user {
+        background-color: #333333;
         color: #ffffff;
+        text-align: right;
+    }
+    .message-ai {
+        background-color: #444444;
+        color: #ffffff;
+        text-align: left;
     }
     </style>
     """,
@@ -45,8 +60,8 @@ def check_for_violations(user_input):
 if st.session_state.chat_history:
     st.write("## Chat History")
     for chat in st.session_state.chat_history:
-        st.markdown(f"<div style='text-align: right; color: white;'><strong>You:</strong> {chat['user_input']}</div>", unsafe_allow_html=True)
-        st.markdown(f"<div style='text-align: left; color: white;'><strong>AI:</strong> {chat['response']}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='message-user'><strong>You:</strong> {chat['user_input']}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div class='message-ai'><strong>AI:</strong> {chat['response']}</div>", unsafe_allow_html=True)
 
 st.write("## New Chat")
 
