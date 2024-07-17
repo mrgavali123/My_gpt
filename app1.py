@@ -10,6 +10,19 @@ model = genai.GenerativeModel('gemini-pro')
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 
+# Set default theme to dark mode
+st.markdown(
+    """
+    <style>
+    body {
+        background-color: #303030;
+        color: #ffffff;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
 st.title("MY Generative AI")
 
 # Function to add chat to history
@@ -19,13 +32,21 @@ def add_to_chat_history(user_input, response):
         "response": response
     })
 
+# Function to check for rule violations
+def check_for_violations(user_input):
+    # Example rule: no offensive language (simple example)
+    offensive_words = ['offensive_word1', 'offensive_word2']  # Add more as needed
+    for word in offensive_words:
+        if word in user_input.lower():
+            return True
+    return False
+
 # Display chat history
 if st.session_state.chat_history:
     st.write("## Chat History")
     for chat in st.session_state.chat_history:
-        st.markdown(f"<div style='text-align: left; color: white;'><strong>You:</strong> {chat['user_input']}</div>", unsafe_allow_html=True)
-        print("/n")
-        st.markdown(f"<div style='text-align: right; color: white;'><strong>AI:</strong> {chat['response']}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: right; color: white;'><strong>You:</strong> {chat['user_input']}</div>", unsafe_allow_html=True)
+        st.markdown(f"<div style='text-align: left; color: white;'><strong>AI:</strong> {chat['response']}</div>", unsafe_allow_html=True)
 
 st.write("## New Chat")
 
@@ -35,15 +56,22 @@ with st.form(key='input_form', clear_on_submit=True):
     submit_button = st.form_submit_button(label="Submit")
 
     if submit_button and user_input:
-        # Generate content
-        response = model.generate_content(user_input)
-        response_text = response.text
+        # Check for rule violations
+        if check_for_violations(user_input):
+            st.error("Your input violates the rules. Please try again with appropriate content.")
+        else:
+            # Generate content
+            try:
+                response = model.generate_content(user_input)
+                response_text = response.text
+            except Exception as e:
+                response_text = "The AI is unable to answer your question. Please ask another question."
 
-        # Add to chat history
-        add_to_chat_history(user_input, response_text)
+            # Add to chat history
+            add_to_chat_history(user_input, response_text)
 
-        # Rerun to update the chat history
-        st.experimental_rerun()
+            # Rerun to update the chat history
+            st.experimental_rerun()
 
 # Option to start a new chat
 if st.button("New Chat"):
