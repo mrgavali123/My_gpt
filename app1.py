@@ -193,11 +193,15 @@ def forgot_password_page():
             conn = sqlite3.connect('users.db')
             c = conn.cursor()
 
-            # Generate a unique token and its expiration time
+            # Invalidate any existing token for this email
+            c.execute('UPDATE users SET reset_token = NULL, token_expiration = NULL WHERE email = ?', (email,))
+            conn.commit()
+
+            # Generate a new unique token and its expiration time
             token = str(uuid.uuid4())
             expiration = int(time.time()) + 3600  # Token expires in 1 hour
 
-            # Save the token and expiration to the database
+            # Save the new token and expiration to the database
             c.execute('UPDATE users SET reset_token = ?, token_expiration = ? WHERE email = ?', (token, expiration, email))
             conn.commit()
 
@@ -216,6 +220,7 @@ def forgot_password_page():
                     st.error("Failed to send email. Please try again later.")
             else:
                 st.error("Email not found in the database.")
+
 # Function for the chatbot page
 def chatbot_page():
     st.title(f"Welcome, {st.session_state.username}")
