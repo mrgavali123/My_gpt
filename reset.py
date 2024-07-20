@@ -2,10 +2,11 @@ import streamlit as st
 import hashlib
 import sqlite3
 import time
+import webbrowser
 
 def reset_password_page():
     # Access query parameters directly
-    query_params = st.query_params
+    query_params = st.experimental_get_query_params()
     token = query_params.get('token', [None])[0]
 
     if not token:
@@ -38,7 +39,7 @@ def reset_password_page():
                 conn.commit()
                 st.success("Password reset successfully. You can now log in with your new password.")
                 # Redirect to login page
-                st.experimental_rerun()
+                webbrowser.open("https://mygenerativeai.streamlit.app")
 
     conn.close()
 
