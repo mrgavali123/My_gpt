@@ -5,7 +5,6 @@ import time
 import webbrowser
 
 def reset_password_page():
-    # Access query parameters directly
     query_params = st.experimental_get_query_params()
     token = query_params.get('token', [None])[0]
 
