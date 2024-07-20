@@ -20,8 +20,8 @@ if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'username' not in st.session_state:
     st.session_state.username = ""
-if 'page' not in st.session_state:
-    st.session_state.page = "Login"
+if 'email' not in st.session_state:
+    st.session_state.email = ""
 
 # Set default theme to dark mode with contrasting text colors
 st.markdown(
@@ -194,55 +194,24 @@ def forgot_password_page():
         if submit_button:
             conn = sqlite3.connect('users.db')
             c = conn.cursor()
-
-            # Invalidate any existing token for this email
-            c.execute('UPDATE users SET reset_token = NULL, token_expiration = NULL WHERE email = ?', (email,))
-            conn.commit()
-
-            # Generate a new unique token and its expiration time
-            token = str(uuid.uuid4())
-            expiration = int(time.time()) + 3600  # Token expires in 1 hour
-
-            # Save the new token and expiration to the database
-            c.execute('UPDATE users SET reset_token = ?, token_expiration = ? WHERE email = ?', (token, expiration, email))
-            conn.commit()
-
-            c.execute('SELECT username FROM users WHERE email = ?', (email,))
+            c.execute('SELECT email FROM users WHERE email = ?', (email,))
             result = c.fetchone()
             conn.close()
 
             if result:
-                username = result[0]
-                reset_link = f"https://mygenerativeairesetpass.streamlit.app/?token={token}"
-                subject = "Password Reset Request"
-                body = f"Hi {username},\n\nPlease click the link below to reset your password:\n{reset_link}"
-                if send_email(email, subject, body):
-                    st.success("Password reset link sent successfully! Check your inbox.")
-                else:
-                    st.error("Failed to send email. Please try again later.")
+                st.session_state.page = "Reset Password"
+                st.session_state.email = email
+                st.experimental_rerun()
             else:
                 st.error("Email not found in the database.")
 
 # Function for the reset password page
 def reset_password_page():
-    query_params = st.experimental_get_query_params()
-    token = query_params.get('token', [None])[0]
+    email = st.session_state.email if 'email' in st.session_state else None
 
-    if not token:
-        st.error("Invalid or missing token.")
+    if not email:
+        st.error("Invalid request. Please request a password reset again.")
         return
-
-    conn = sqlite3.connect('users.db')
-    c = conn.cursor()
-    c.execute('SELECT email FROM users WHERE reset_token = ? AND token_expiration > ?', (token, int(time.time())))
-    result = c.fetchone()
-
-    if not result:
-        st.error("Invalid or expired token.")
-        conn.close()
-        return
-
-    email = result[0]
 
     with st.form(key='reset_password_form'):
         new_password = st.text_input("Enter new password", type="password")
@@ -254,14 +223,14 @@ def reset_password_page():
                 st.error("Passwords do not match.")
             else:
                 hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
-                c.execute('UPDATE users SET password = ?, reset_token = NULL, token_expiration = NULL WHERE email = ?', (hashed_password, email))
+                conn = sqlite3.connect('users.db')
+                c = conn.cursor()
+                c.execute('UPDATE users SET password = ? WHERE email = ?', (hashed_password, email))
                 conn.commit()
+                conn.close()
                 st.success("Password reset successfully. You can now log in with your new password.")
-                # Redirect to login page
                 st.session_state.page = "Login"
                 st.experimental_rerun()
-
-    conn.close()
 
 # Function for the chatbot page
 def chatbot_page():
@@ -301,27 +270,26 @@ def chatbot_page():
     if st.button("Logout"):
         st.session_state.authenticated = False
         st.session_state.username = ""
-        st.session_state.page = "Login"
         st.experimental_rerun()
 
-# Main app logic
+# Initialize the database
 init_db()
 
+# Main app logic
 if st.session_state.authenticated:
     chatbot_page()
 else:
-    if st.session_state.page == "Forgot Password":
-        forgot_password_page()
-    elif st.session_state.page == "Reset Password":
-        reset_password_page()
-    else:
-        st.sidebar.title("Navigation")
-        page = st.sidebar.radio("Go to", ["Login", "Register", "Forgot Password"], index=["Login", "Register", "Forgot Password"].index(st.session_state.page))
+    if 'page' not in st.session_state:
+        st.session_state.page = "Login"
 
-        if page == "Login":
-            login_page()
-        elif page == "Register":
-            registration_page()
-        elif page == "Forgot Password":
-            st.session_state.page = "Forgot Password"
-            st.experimental_rerun()
+    st.sidebar.title("Navigation")
+    page = st.sidebar.radio("Go to", ["Login", "Register", "Forgot Password", "Reset Password"], index=["Login", "Register", "Forgot Password", "Reset Password"].index(st.session_state.page))
+
+    if page == "Login":
+        login_page()
+    elif page == "Register":
+        registration_page()
+    elif page == "Forgot Password":
+        forgot_password_page()
+    elif page == "Reset Password":
+        reset_password_page()
