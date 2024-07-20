@@ -216,7 +216,6 @@ def forgot_password_page():
                     st.error("Failed to send email. Please try again later.")
             else:
                 st.error("Email not found in the database.")
-
 # Function for the chatbot page
 def chatbot_page():
     st.title(f"Welcome, {st.session_state.username}")
