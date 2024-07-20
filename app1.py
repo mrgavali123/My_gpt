@@ -156,6 +156,11 @@ def login_page():
         st.session_state.page = "Forgot Password"
         st.experimental_rerun()
 
+    # Forgot Username link
+    if st.button("Forgot Username"):
+        st.session_state.page = "Forgot Username"
+        st.experimental_rerun()
+
 # Function for the registration page
 def registration_page():
     st.title("Register")
@@ -202,6 +207,31 @@ def forgot_password_page():
                 st.session_state.page = "Reset Password"
                 st.session_state.email = email
                 st.experimental_rerun()
+            else:
+                st.error("Email not found in the database.")
+
+# Function for the forgot username page
+def forgot_username_page():
+    st.title("Forgot Username")
+    with st.form(key='forgot_username_form'):
+        email = st.text_input("Enter your registered Email")
+        submit_button = st.form_submit_button(label="Submit")
+
+        if submit_button:
+            conn = sqlite3.connect('users.db')
+            c = conn.cursor()
+            c.execute('SELECT username FROM users WHERE email = ?', (email,))
+            result = c.fetchone()
+            conn.close()
+
+            if result:
+                username = result[0]
+                subject = "Your Username"
+                body = f"Hi,\n\nYour username is: {username}"
+                if send_email(email, subject, body):
+                    st.success("Your username has been sent to your email.")
+                else:
+                    st.error("Failed to send email. Please try again later.")
             else:
                 st.error("Email not found in the database.")
 
@@ -270,6 +300,7 @@ def chatbot_page():
     if st.button("Logout"):
         st.session_state.authenticated = False
         st.session_state.username = ""
+        st.session_state.email = ""
         st.experimental_rerun()
 
 # Initialize the database
@@ -283,7 +314,7 @@ else:
         st.session_state.page = "Login"
 
     st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Login", "Register", "Forgot Password", "Reset Password"], index=["Login", "Register", "Forgot Password", "Reset Password"].index(st.session_state.page))
+    page = st.sidebar.radio("Go to", ["Login", "Register", "Forgot Password", "Forgot Username", "Reset Password"], index=["Login", "Register", "Forgot Password", "Forgot Username", "Reset Password"].index(st.session_state.page))
 
     if page == "Login":
         login_page()
@@ -291,5 +322,7 @@ else:
         registration_page()
     elif page == "Forgot Password":
         forgot_password_page()
+    elif page == "Forgot Username":
+        forgot_username_page()
     elif page == "Reset Password":
         reset_password_page()
