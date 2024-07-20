@@ -9,7 +9,7 @@ import uuid
 import time
 
 # Configure the API key
-api_key = "AIzaSyDd3pZF_IF3tTg09MsgmKwa9T6GrMkBL6Y"
+api_key = "YOUR_API_KEY"
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-pro')
 
@@ -105,10 +105,9 @@ def display_chat_history():
             st.markdown(f"<div class='message-ai'><strong>AI:</strong> {chat['response']}</div>", unsafe_allow_html=True)
 
 # Function to send email
-
 def send_email(to_email, subject, body):
     from_email = "gavalipratik2@gmail.com"
-    from_password = "tjnq sxak avym pmmn"  # Use an app password or OAuth2 token
+    from_password = "tjnq sxak avym pmmn"
 
     msg = MIMEMultipart()
     msg['From'] = from_email
@@ -184,7 +183,6 @@ def registration_page():
                 conn.close()
 
 # Function for the forgot password page
-
 def forgot_password_page():
     st.title("Forgot Password")
     with st.form(key='forgot_password_form'):
@@ -209,7 +207,7 @@ def forgot_password_page():
 
             if result:
                 username = result[0]
-                reset_link = f"https://mygenerativeairesetpass.streamlit.app?token={token}"
+                reset_link = f"https://mygenerativeairesetpass.streamlit.app/?token={token}"
                 subject = "Password Reset Request"
                 body = f"Hi {username},\n\nPlease click the link below to reset your password:\n{reset_link}"
                 if send_email(email, subject, body):
@@ -218,7 +216,7 @@ def forgot_password_page():
                     st.error("Failed to send email. Please try again later.")
             else:
                 st.error("Email not found in the database.")
-                
+
 # Function for the chatbot page
 def chatbot_page():
     st.title(f"Welcome, {st.session_state.username}")
