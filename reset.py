@@ -2,7 +2,6 @@ import streamlit as st
 import hashlib
 import sqlite3
 import time
-
 def reset_password_page():
     query_params = st.experimental_get_query_params()
     token = query_params.get('token', [None])[0]
