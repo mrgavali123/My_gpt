@@ -7,6 +7,7 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import uuid
 import time
+import webbrowser
 
 # Configure the API key
 api_key = "AIzaSyDd3pZF_IF3tTg09MsgmKwa9T6GrMkBL6Y"
@@ -20,6 +21,8 @@ if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'username' not in st.session_state:
     st.session_state.username = ""
+if 'page' not in st.session_state:
+    st.session_state.page = "Login"
 
 # Set default theme to dark mode with contrasting text colors
 st.markdown(
@@ -107,7 +110,7 @@ def display_chat_history():
 # Function to send email
 def send_email(to_email, subject, body):
     from_email = "gavalipratik2@gmail.com"
-    from_password = "tjnq sxak avym pmmn"
+    from_password = "tjnq sxak avym pmmn"  # Use an app password or OAuth2 token
 
     msg = MIMEMultipart()
     msg['From'] = from_email
@@ -221,45 +224,44 @@ def forgot_password_page():
             else:
                 st.error("Email not found in the database.")
 
-# Function for the chatbot page
-def chatbot_page():
-    st.title(f"Welcome, {st.session_state.username}")
-    st.title("MY Generative AI")
+# Function for the reset password page
+def reset_password_page():
+    query_params = st.query_params
+    token = query_params.get('token', [None])[0]
 
-    # Display chat history
-    display_chat_history()
+    if not token:
+        st.error("Invalid or missing token.")
+        return
 
-    st.write("## New Chat")
+    conn = sqlite3.connect('users.db')
+    c = conn.cursor()
+    c.execute('SELECT email FROM users WHERE reset_token = ? AND token_expiration > ?', (token, int(time.time())))
+    result = c.fetchone()
 
-    # Form to input and submit user question
-    with st.form(key='input_form', clear_on_submit=True):
-        user_input = st.text_input("Enter your question:", key="user_input")
-        submit_button = st.form_submit_button(label="Submit")
+    if not result:
+        st.error("Invalid or expired token.")
+        conn.close()
+        return
 
-        if submit_button and user_input:
-            # Check for rule violations
-            if check_for_violations(user_input):
-                st.error("Your input violates the rules. Please try again with appropriate content.")
+    email = result[0]
+
+    with st.form(key='reset_password_form'):
+        new_password = st.text_input("Enter new password", type="password")
+        confirm_password = st.text_input("Confirm new password", type="password")
+        submit_button = st.form_submit_button(label="Reset Password")
+
+        if submit_button:
+            if new_password != confirm_password:
+                st.error("Passwords do not match.")
             else:
-                # Generate content with context
-                response_text = generate_response_with_context(user_input)
-
-                # Add to chat history
-                add_to_chat_history(user_input, response_text)
-
-                # Rerun to update the chat history
+                hashed_password = hashlib.sha256(new_password.encode()).hexdigest()
+                c.execute('UPDATE users SET password = ?, reset_token = NULL, token_expiration = NULL WHERE email = ?', (hashed_password, email))
+                conn.commit()
+                st.success("Password reset successfully. You can now log in with your new password.")
+                # Redirect to login page
                 st.experimental_rerun()
 
-    # Option to start a new chat
-    if st.button("New Chat"):
-        st.session_state.chat_history = []
-        st.experimental_rerun()
-
-    # Logout button
-    if st.button("Logout"):
-        st.session_state.authenticated = False
-        st.session_state.username = ""
-        st.experimental_rerun()
+    conn.close()
 
 # Initialize the database
 init_db()
@@ -268,15 +270,18 @@ init_db()
 if st.session_state.authenticated:
     chatbot_page()
 else:
-    if 'page' not in st.session_state:
-        st.session_state.page = "Login"
-
-    st.sidebar.title("Navigation")
-    page = st.sidebar.radio("Go to", ["Login", "Register", "Forgot Password"], index=["Login", "Register", "Forgot Password"].index(st.session_state.page))
-
-    if page == "Login":
-        login_page()
-    elif page == "Register":
-        registration_page()
-    elif page == "Forgot Password":
+    if st.session_state.page == "Forgot Password":
         forgot_password_page()
+    elif st.session_state.page == "Reset Password":
+        reset_password_page()
+    else:
+        st.sidebar.title("Navigation")
+        page = st.sidebar.radio("Go to", ["Login", "Register", "Forgot Password"], index=["Login", "Register", "Forgot Password"].index(st.session_state.page))
+
+        if page == "Login":
+            login_page()
+        elif page == "Register":
+            registration_page()
+        elif page == "Forgot Password":
+            st.session_state.page = "Forgot Password"
+            st.experimental_rerun()
