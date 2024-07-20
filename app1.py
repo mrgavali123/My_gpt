@@ -9,7 +9,7 @@ import uuid
 import time
 
 # Configure the API key
-api_key = "YOUR_API_KEY"
+api_key = "AIzaSyDd3pZF_IF3tTg09MsgmKwa9T6GrMkBL6Y"
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-pro')
 
