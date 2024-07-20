@@ -107,8 +107,8 @@ def display_chat_history():
 # Function to send email
 
 def send_email(to_email, subject, body):
-    from_email = "your_email@gmail.com"
-    from_password = "your_password"  # Use an app password or OAuth2 token
+    from_email = "gavalipratik2@gmail.com"
+    from_password = "tjnq sxak avym pmmn"  # Use an app password or OAuth2 token
 
     msg = MIMEMultipart()
     msg['From'] = from_email
