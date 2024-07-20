@@ -14,12 +14,12 @@ import os
 
 # Load environment variables from .env file
 load_dotenv()
-api_key = API_KEY
 
-# Get API key from environment variable
-# api_key = os.getenv("API_KEY")
-# if not api_key:
-    # raise ValueError("API_KEY not found in environment variables. Please set it in the .env file.")
+
+Get API key from environment variable
+api_key = os.getenv("API_KEY")
+if not api_key:
+    raise ValueError("API_KEY not found in environment variables. Please set it in the .env file.")
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-pro')
 
