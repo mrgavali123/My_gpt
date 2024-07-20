@@ -7,7 +7,6 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import uuid
 import time
-import webbrowser
 
 # Configure the API key
 api_key = "AIzaSyDd3pZF_IF3tTg09MsgmKwa9T6GrMkBL6Y"
@@ -226,7 +225,7 @@ def forgot_password_page():
 
 # Function for the reset password page
 def reset_password_page():
-    query_params = st.query_params
+    query_params = st.experimental_get_query_params()
     token = query_params.get('token', [None])[0]
 
     if not token:
@@ -259,14 +258,55 @@ def reset_password_page():
                 conn.commit()
                 st.success("Password reset successfully. You can now log in with your new password.")
                 # Redirect to login page
+                st.session_state.page = "Login"
                 st.experimental_rerun()
 
     conn.close()
 
-# Initialize the database
-init_db()
+# Function for the chatbot page
+def chatbot_page():
+    st.title(f"Welcome, {st.session_state.username}")
+    st.title("MY Generative AI")
+
+    # Display chat history
+    display_chat_history()
+
+    st.write("## New Chat")
+
+    # Form to input and submit user question
+    with st.form(key='input_form', clear_on_submit=True):
+        user_input = st.text_input("Enter your question:", key="user_input")
+        submit_button = st.form_submit_button(label="Submit")
+
+        if submit_button and user_input:
+            # Check for rule violations
+            if check_for_violations(user_input):
+                st.error("Your input violates the rules. Please try again with appropriate content.")
+            else:
+                # Generate content with context
+                response_text = generate_response_with_context(user_input)
+
+                # Add to chat history
+                add_to_chat_history(user_input, response_text)
+
+                # Rerun to update the chat history
+                st.experimental_rerun()
+
+    # Option to start a new chat
+    if st.button("New Chat"):
+        st.session_state.chat_history = []
+        st.experimental_rerun()
+
+    # Logout button
+    if st.button("Logout"):
+        st.session_state.authenticated = False
+        st.session_state.username = ""
+        st.session_state.page = "Login"
+        st.experimental_rerun()
 
 # Main app logic
+init_db()
+
 if st.session_state.authenticated:
     chatbot_page()
 else:
