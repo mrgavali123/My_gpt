@@ -9,7 +9,16 @@ import uuid
 import time
 
 # Configure the API key
-api_key = "AIzaSyDd3pZF_IF3tTg09MsgmKwa9T6GrMkBL6Y"
+from dotenv import load_dotenv
+import os
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Get API key from environment variable
+api_key = os.getenv("API_KEY")
+if not api_key:
+    raise ValueError("API_KEY not found in environment variables. Please set it in the .env file.")
 genai.configure(api_key=api_key)
 model = genai.GenerativeModel('gemini-pro')
 
