@@ -291,5 +291,5 @@ else:
         registration_page()
     elif page == "Forgot Password":
         forgot_password_page()
-   # elif page == "Reset Password":
-    #    reset_password_page()
+    elif page == "Reset Password":
+        reset_password_page()
