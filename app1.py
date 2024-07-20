@@ -207,7 +207,7 @@ def forgot_password_page():
 
             if result:
                 username = result[0]
-                reset_link = f"https://mygenerativeai.streamlit.app/reset_password.py?token={token}"
+                reset_link = https://mygenerativeairesetpass.streamlit.app?token={token}"
                 subject = "Password Reset Request"
                 body = f"Hi {username},\n\nPlease click the link below to reset your password:\n{reset_link}"
                 if send_email(email, subject, body):
