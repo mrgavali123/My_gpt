@@ -105,9 +105,10 @@ def display_chat_history():
             st.markdown(f"<div class='message-ai'><strong>AI:</strong> {chat['response']}</div>", unsafe_allow_html=True)
 
 # Function to send email
+
 def send_email(to_email, subject, body):
-    from_email = "gavalipratik2@gmail.com"
-    from_password = "tjnq sxak avym pmmn"  # Use an app password or OAuth2 token
+    from_email = "your_email@gmail.com"
+    from_password = "your_password"  # Use an app password or OAuth2 token
 
     msg = MIMEMultipart()
     msg['From'] = from_email
@@ -183,6 +184,7 @@ def registration_page():
                 conn.close()
 
 # Function for the forgot password page
+
 def forgot_password_page():
     st.title("Forgot Password")
     with st.form(key='forgot_password_form'):
@@ -216,7 +218,7 @@ def forgot_password_page():
                     st.error("Failed to send email. Please try again later.")
             else:
                 st.error("Email not found in the database.")
-
+                
 # Function for the chatbot page
 def chatbot_page():
     st.title(f"Welcome, {st.session_state.username}")
